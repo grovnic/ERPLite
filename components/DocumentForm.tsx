@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DocType, ERPDocument, Company, Client, DocItem, Language, InventoryItem, PaymentMethod } from '../types';
 import { TRANSLATIONS, VAT_RATE_BH, VAT_CATEGORIES } from '../constants';
@@ -12,15 +13,18 @@ interface DocumentFormProps {
   onSave: (doc: ERPDocument) => void;
   onCancel: () => void;
   lang: Language;
+  tenantId: string;
 }
 
-const DocumentForm: React.FC<DocumentFormProps> = ({ initialDoc, type, company, clients, inventory, onSave, onCancel, lang }) => {
+const DocumentForm: React.FC<DocumentFormProps> = ({ initialDoc, type, company, clients, inventory, onSave, onCancel, lang, tenantId }) => {
   const t = TRANSLATIONS[lang];
   const tBS = TRANSLATIONS['BS'];
   const tEN = TRANSLATIONS['EN'];
 
+  // Fix: Ensure the initial state object literal includes required 'tenantId' for both ERPDocument and Client types.
   const [doc, setDoc] = useState<ERPDocument>(initialDoc || {
     id: crypto.randomUUID(),
+    tenantId: tenantId,
     type,
     number: `${type.substring(0,2)}-${new Date().getFullYear()}-${String(Math.floor(Math.random()*1000)).padStart(3, '0')}`,
     dateCreated: new Date().toISOString().split('T')[0],
@@ -30,7 +34,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ initialDoc, type, company, 
     placeOfIssue: company.defaultPlaceOfIssue,
     paymentMethod: 'Virman',
     paymentStatus: 'NEPLAĆENO',
-    client: clients[0] || { id: '', name: '', address: '', city: '', jib: '' },
+    client: clients[0] || { id: '', tenantId: tenantId, name: '', address: '', city: '', jib: '' },
     items: [],
     note: '',
     language: company.defaultLanguage || lang,
