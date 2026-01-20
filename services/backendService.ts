@@ -1,12 +1,10 @@
-
 import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types.ts';
 
 // Config
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
-// Fix: Explicitly type SB_KEY as string to avoid type narrowing to literal causing 'never' type in comparison
-const SB_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
+const SB_KEY: string = 'VAŠ_ANON_PUBLIC_KEY_OVDJE'; 
 
-const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A' && SB_KEY.length > 20;
+const isSupabaseConfigured = SB_KEY !== 'VAŠ_ANON_PUBLIC_KEY_OVDJE' && SB_KEY.length > 20;
 
 const headers = {
   'apikey': SB_KEY,
@@ -30,7 +28,6 @@ const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
   return response.json();
 };
 
-// Fallback logic for local development/demo
 const getLocal = (key: string) => JSON.parse(localStorage.getItem(`erp_${key}`) || '[]');
 const setLocal = (key: string, data: any) => localStorage.setItem(`erp_${key}`, JSON.stringify(data));
 
@@ -71,11 +68,9 @@ export const backendService = {
         await this._log(formattedUser, 'LOGIN', 'System', `Uspješna prijava.`);
         return { user: formattedUser };
       } else {
-        // Mock login for demo
         const users = getLocal('users');
         const user = users.find((u: any) => u.email === email.toLowerCase());
         
-        // If no users at all, create a superadmin demo
         if (users.length === 0 && email === 'admin@demo.ba') {
             const demoUser: User = { id: 'u_demo', email: 'admin@demo.ba', username: 'Demo Admin', role: 'SUPER_ADMIN', tenantId: 't_demo' };
             setLocal('users', [demoUser]);
@@ -130,7 +125,6 @@ export const backendService = {
       }));
     } else {
       const raw = getLocal('tenants');
-      // Ensure at least one demo tenant exists
       if (raw.length === 0) {
         const demo = { id: 't_demo', status: 'APPROVED', createdAt: new Date().toISOString(), company: { name: 'Demo Firma d.o.o.', address: 'Glavna 1', city: 'Sarajevo', zip: '71000', jib: '4200000000001', bankAccounts: [], email: 'demo@firma.ba', phone: '033123456', defaultPlaceOfIssue: 'Sarajevo', defaultLanguage: 'BS' }, securityPolicy: { sessionTimeoutMinutes: 60 } };
         setLocal('tenants', [demo]);
@@ -140,7 +134,6 @@ export const backendService = {
     }
   },
 
-  // Fix: Added missing updateTenantStatus method to fix error in TenantManagement.tsx
   async updateTenantStatus(user: User, tenantId: string, status: TenantStatus): Promise<void> {
     if (isSupabaseConfigured) {
       await sbFetch(`tenants?id=eq.${tenantId}`, { 
@@ -180,7 +173,6 @@ export const backendService = {
       });
       await sbFetch(resource, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) });
     } else {
-      // For local storage, we usually replace the whole set for that tenant or merge
       const all = getLocal(resource);
       const filtered = all.filter((i: any) => i.tenantId !== user.tenantId);
       setLocal(resource, [...filtered, ...data]);
