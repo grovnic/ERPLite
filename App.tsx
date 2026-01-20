@@ -11,8 +11,8 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Fix: Remove the .tsx extension from the import to help resolve casing conflicts between duplicate files in the compilation context.
-import KirkurReports from './components/KirkurReports';
+// Fix: Corrected casing to match KIRKURReports.tsx and resolve compilation conflict
+import KIRKURReports from './components/KIRKURReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
 import AuditLog from './components/AuditLog.tsx';
@@ -202,7 +202,8 @@ const App: React.FC = () => {
         {activeTab === 'clients' && <ClientList clients={clients} setClients={setClients as any} lang={lang} tenantId={currentUser.tenantId} />}
         {activeTab === 'inventory' && <InventoryList inventory={inventory} setInventory={setInventory as any} lang={lang} tenantId={currentUser.tenantId} />}
         {activeTab === 'reports' && <Reports documents={documents} lang={lang} />}
-        {activeTab === 'accounting' && <KirkurReports documents={documents} lang={lang} />}
+        {/* Fix: Updated component usage to match the correctly cased import */}
+        {activeTab === 'accounting' && <KIRKURReports documents={documents} lang={lang} />}
         
         {activeTab === 'tenant-admin' && currentUser.role === 'SUPER_ADMIN' && (
           <TenantManagement currentUser={currentUser} onImpersonate={(tenantId) => { setCurrentUser({...currentUser, tenantId}); setActiveTab('dashboard'); }} />
