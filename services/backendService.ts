@@ -1,11 +1,9 @@
 
-import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types';
+import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types.ts';
 
 /**
- * VAŽNO: 
- * Za rad u browseru OBAVEZNO koristi "anon public" ključ iz Supabase Dashboard-a.
- * (Settings -> API -> Project API keys -> anon public)
- * NEMOJ koristiti "service_role" ključ jer će Supabase blokirati zahtjeve.
+ * ZAMIJENI OVO SA SVOJIM ANON PUBLIC KEY IZ SUPABASE-A
+ * Nađi ga ovdje: Settings -> API -> Project API keys -> anon public
  */
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
@@ -25,7 +23,6 @@ const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({ message: 'Greška u komunikaciji sa bazom.' }));
-    // Ako dobijete "Forbidden", to znači da i dalje koristite secret key u browseru.
     throw new Error(err.message || "Baza podataka je vratila grešku.");
   }
   return response.json();
