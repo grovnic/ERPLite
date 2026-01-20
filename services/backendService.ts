@@ -1,11 +1,12 @@
-import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types.ts';
+// Fixed import by removing the .ts extension as per standard TypeScript practices
+import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types';
 
 // Config
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
 // Eksplicitni tip : string sprečava TS da tipizuje ovo kao literalnu vrednost
 const SB_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
 
-const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A' && SB_KEY.length > 20;
+const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8AE' && SB_KEY.length > 20;
 
 const headers = {
   'apikey': SB_KEY,
@@ -33,13 +34,14 @@ const getLocal = (key: string) => JSON.parse(localStorage.getItem(`erp_${key}`) 
 const setLocal = (key: string, data: any) => localStorage.setItem(`erp_${key}`, JSON.stringify(data));
 
 export const backendService = {
+  // Ensured _log creates entries consistent with the AuditEntry interface
   async _log(user: User, action: AuditAction, resource: string, details: string) {
-    const entry = {
+    const entry: AuditEntry = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      user_id: user.id,
+      userId: user.id,
       username: user.username,
-      tenant_id: user.tenantId,
+      tenantId: user.tenantId,
       action,
       resource,
       details
@@ -47,7 +49,17 @@ export const backendService = {
     
     if (isSupabaseConfigured) {
       try {
-        await sbFetch('audit_log', { method: 'POST', body: JSON.stringify(entry) });
+        const dbEntry = {
+          id: entry.id,
+          timestamp: entry.timestamp,
+          user_id: entry.userId,
+          username: entry.username,
+          tenant_id: entry.tenantId,
+          action: entry.action,
+          resource: entry.resource,
+          details: entry.details
+        };
+        await sbFetch('audit_log', { method: 'POST', body: JSON.stringify(dbEntry) });
       } catch (e) { console.error("Cloud logging failed", e); }
     } else {
       const logs = getLocal('audit_log');
@@ -190,7 +202,8 @@ export const backendService = {
       }));
     } else {
       const all = getLocal('audit_log');
-      return tenantId === 'ALL' ? all : all.filter((l: any) => l.tenant_id === tenantId);
+      // Added support for both camelCase and snake_case in the local storage filter to handle legacy or mixed data
+      return tenantId === 'ALL' ? all : all.filter((l: any) => (l.tenantId === tenantId || l.tenant_id === tenantId));
     }
   },
 
