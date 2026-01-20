@@ -1,5 +1,5 @@
 
-/* Globalni stilovi za Bratts ERP */
+/* Bratts ERP Global Styles */
 :root {
   --primary: #2563eb;
 }
@@ -7,6 +7,7 @@
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
 }
 
 .animate-fade-in {
@@ -18,8 +19,15 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Print Styles */
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
   body { background: white !important; }
+  .printable-area {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 }
