@@ -1,33 +1,67 @@
-
-/* Bratts ERP Global Styles */
+/* Bratts ERP Professional Style System */
 :root {
   --primary: #2563eb;
+  --sidebar: #0f172a;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
+  overflow: hidden;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
+  animation: erpFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes erpFadeIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Print Styles */
+/* Print Overrides */
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
-  body { background: white !important; }
+  body { background: white !important; overflow: visible !important; }
+  main { overflow: visible !important; padding: 0 !important; margin: 0 !important; }
   .printable-area {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
   }
+}
+
+.shadow-premium {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+.shadow-card {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.02), 0 4px 6px -4px rgb(0 0 0 / 0.02);
 }
