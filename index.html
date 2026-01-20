@@ -45,8 +45,8 @@
   </script>
 
   <!-- 
-    IMPORT MAP: Govorimo browseru da ako vidi bilo šta što počinje sa "./", 
-    treba da to potraži na esm.sh/gh/grovnic/ERPLite/
+    IMPORT MAP: Koristimo samo za eksterne pakete. 
+    Lokalne fajlove će rešiti esm.sh bundler.
   -->
   <script type="importmap">
 {
@@ -56,25 +56,25 @@
     "react-dom/client": "https://esm.sh/react-dom@19.2.3/client",
     "@google/genai": "https://esm.sh/@google/genai@1.37.0",
     "recharts": "https://esm.sh/recharts@3.6.0",
-    "./App.tsx": "https://esm.sh/gh/grovnic/ERPLite/App.tsx",
-    "./types.ts": "https://esm.sh/gh/grovnic/ERPLite/types.ts",
-    "./constants.tsx": "https://esm.sh/gh/grovnic/ERPLite/constants.tsx",
-    "./services/backendService.ts": "https://esm.sh/gh/grovnic/ERPLite/services/backendService.ts",
-    "./services/geminiService.ts": "https://esm.sh/gh/grovnic/ERPLite/services/geminiService.ts",
-    "./components/": "https://esm.sh/gh/grovnic/ERPLite/components/",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body>
   <div id="root"></div>
   <div id="debug-log" class="debug-panel"><strong>Debug Console:</strong><br></div>
 
   <script type="module">
-    // Učitavamo direktno sa esm.sh koji će uraditi transpilaciju na serveru
-    import 'https://esm.sh/gh/grovnic/ERPLite/index.tsx';
+    /**
+     * Koristimo ?bundle i ?deps parametre.
+     * Ovo govori esm.sh da sam prođe kroz tvoj repo, nađe sve fajlove
+     * i koristi React 19.2.3 za sve njih, rešavajući 404 greške.
+     */
+    import 'https://esm.sh/gh/grovnic/ERPLite/index.tsx?bundle&deps=react@19.2.3,react-dom@19.2.3';
   </script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
