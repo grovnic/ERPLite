@@ -3,9 +3,9 @@ import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditActi
 // Config
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
 // Eksplicitni tip : string sprečava TS da tipizuje ovo kao literalnu vrednost
-const SB_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
+const SB_KEY: string = 'VAŠ_ANON_PUBLIC_KEY_OVDJE'; 
 
-const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A' && SB_KEY.length > 20;
+const isSupabaseConfigured = SB_KEY !== 'VAŠ_ANON_PUBLIC_KEY_OVDJE' && SB_KEY.length > 20;
 
 const headers = {
   'apikey': SB_KEY,
