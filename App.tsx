@@ -11,7 +11,7 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Fix: Correct casing for KirkurReports import to match KIRKURReports.tsx and resolve TypeScript casing conflict.
+// Fix: Use the casing that matches the root file included in the project to avoid casing conflict
 import KirkurReports from './components/KIRKURReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
