@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { DocType, ERPDocument, Company, Client, DocItem, Language, InventoryItem, PaymentMethod } from '../types';
+import { DocType, ERPDocument, Company, Client, DocItem, Language, InventoryItem } from '../types';
 import { TRANSLATIONS, VAT_RATE_BH, VAT_CATEGORIES } from '../constants';
 import { geminiService } from '../services/geminiService';
 
@@ -21,7 +20,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ initialDoc, type, company, 
   const tBS = TRANSLATIONS['BS'];
   const tEN = TRANSLATIONS['EN'];
 
-  // Fix: Ensure the initial state object literal includes required 'tenantId' for both ERPDocument and Client types.
   const [doc, setDoc] = useState<ERPDocument>(initialDoc || {
     id: crypto.randomUUID(),
     tenantId: tenantId,
@@ -82,7 +80,6 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ initialDoc, type, company, 
     return acc;
   }, {} as Record<number, { sub: number, vat: number }>);
 
-  // Fix: Explicitly cast Object.values to avoid 'unknown' type errors in the reduce accumulator
   const totalBeforeVat = (Object.values(totalsByVat) as { sub: number, vat: number }[]).reduce((acc: number, curr) => acc + curr.sub, 0);
   const totalVat = (Object.values(totalsByVat) as { sub: number, vat: number }[]).reduce((acc: number, curr) => acc + curr.vat, 0);
   const grandTotal = totalBeforeVat + totalVat;
