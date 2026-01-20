@@ -8,46 +8,27 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="./index.css">
   
   <style>
     body { 
       font-family: 'Inter', sans-serif; 
       margin: 0; padding: 0; 
-      background-color: #0f172a; color: white; 
-      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+      background-color: #f8fafc; color: #1e293b;
     }
     #root:empty::after {
       content: "Pokretanje Bratts ERP sistema...";
       display: block; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;
       color: #3b82f6; animation: pulse 2s infinite; text-align: center;
+      margin-top: 20vh;
     }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .debug-panel {
-      position: fixed; bottom: 20px; left: 20px; right: 20px;
-      background: rgba(0,0,0,0.9); color: #10b981; padding: 15px;
-      border-radius: 10px; font-family: monospace; font-size: 10px;
-      max-height: 200px; overflow-y: auto; border: 1px solid #ef4444;
-      z-index: 9999; display: none;
-    }
   </style>
 
   <script>
     window.process = { env: { NODE_ENV: 'production', API_KEY: "" } };
-    
-    window.addEventListener('error', (e) => {
-      const panel = document.getElementById('debug-log');
-      if (panel) {
-        panel.style.display = 'block';
-        panel.innerHTML += `<div style="color: #ef4444">GREŠKA: ${e.message}</div>`;
-      }
-    });
   </script>
 
-  <!-- 
-    IMPORT MAP: Koristimo samo za eksterne pakete. 
-    Lokalne fajlove će rešiti esm.sh bundler.
-  -->
   <script type="importmap">
 {
   "imports": {
@@ -65,16 +46,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <div id="debug-log" class="debug-panel"><strong>Debug Console:</strong><br></div>
-
-  <script type="module">
-    /**
-     * Koristimo ?bundle i ?deps parametre.
-     * Ovo govori esm.sh da sam prođe kroz tvoj repo, nađe sve fajlove
-     * i koristi React 19.2.3 za sve njih, rešavajući 404 greške.
-     */
-    import 'https://esm.sh/gh/grovnic/ERPLite/index.tsx?bundle&deps=react@19.2.3,react-dom@19.2.3';
-  </script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>

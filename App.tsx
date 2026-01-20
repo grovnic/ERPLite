@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { DocType, ERPDocument, Company, Language, Client, InventoryItem, User, Tenant } from './types.ts';
 import { TRANSLATIONS } from './constants.tsx';
@@ -11,7 +10,7 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Fix casing mismatch: import from KIRKURReports.tsx instead of KirkurReports.tsx to match program inclusion
+// Fix: Import KIRKURReports using the correct file casing to avoid duplicate naming conflicts in the TypeScript program
 import KirkurReports from './components/KIRKURReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
