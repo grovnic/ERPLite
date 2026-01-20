@@ -13,7 +13,6 @@
       .no-print { display: none !important; }
       .print-only { display: block !important; }
     }
-    /* Smooth Transitions */
     .animate-fade-in { animation: fadeIn 0.5s ease-out; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -27,6 +26,7 @@
     "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
     "@google/genai": "https://esm.sh/@google/genai@^1.37.0"
   }
 }
@@ -35,6 +35,8 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
   <div id="root"></div>
+  <!-- DODAJEMO OVO: Glavni ulaz za aplikaciju -->
+  <script type="module" src="./index.tsx"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>

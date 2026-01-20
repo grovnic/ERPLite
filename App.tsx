@@ -1,21 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
-import { DocType, ERPDocument, Company, Language, Client, InventoryItem, User, Tenant } from './types';
-import { TRANSLATIONS } from './constants';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import DocumentList from './components/DocumentList';
-import DocumentForm from './components/DocumentForm';
-import CalculationForm from './components/CalculationForm';
-import Settings from './components/Settings';
-import ClientList from './components/ClientList';
-import InventoryList from './components/InventoryList';
-import Reports from './components/Reports';
-import KIRKURReports from './components/KIRKURReports';
-import Login from './components/Login';
-import TenantManagement from './components/TenantManagement';
-import AuditLog from './components/AuditLog';
-import { backendService } from './services/backendService';
+import { DocType, ERPDocument, Company, Language, Client, InventoryItem, User, Tenant } from './types.ts';
+import { TRANSLATIONS } from './constants.tsx';
+import Sidebar from './components/Sidebar.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import DocumentList from './components/DocumentList.tsx';
+import DocumentForm from './components/DocumentForm.tsx';
+import CalculationForm from './components/CalculationForm.tsx';
+import Settings from './components/Settings.tsx';
+import ClientList from './components/ClientList.tsx';
+import InventoryList from './components/InventoryList.tsx';
+import Reports from './components/Reports.tsx';
+import KIRKURReports from './components/KIRKURReports.tsx';
+import Login from './components/Login.tsx';
+import TenantManagement from './components/TenantManagement.tsx';
+import AuditLog from './components/AuditLog.tsx';
+import { backendService } from './services/backendService.ts';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
