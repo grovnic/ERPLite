@@ -10,7 +10,9 @@ export enum DocType {
   PURCHASE_ORDER = 'PURCHASE_ORDER'
 }
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT' | 'APPROVE' | 'REJECT';
+export type VATCategory = 17 | 0 | 'EXEMPT';
+
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'EXPORT' | 'APPROVE' | 'REJECT' | 'CLONE' | 'CONVERT';
 
 export interface AuditEntry {
   id: string;
@@ -37,7 +39,7 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  password?: string; // In a real app, this would be hashed on the server
+  password?: string;
   role: UserRole;
   tenantId: string;
 }
@@ -60,6 +62,7 @@ export interface Company {
   phone: string;
   logo?: string;
   defaultPlaceOfIssue: string;
+  defaultLanguage: Language;
 }
 
 export interface Tenant {
@@ -112,7 +115,8 @@ export interface DocItem {
   unit: string;
   pricePerUnit: number;
   discount: number;
-  vatRate: number;
+  vatRate: number; // 17, 0, or 0 (exempt)
+  vatCategory?: VATCategory;
 }
 
 export interface ERPDocument {
@@ -124,6 +128,7 @@ export interface ERPDocument {
   dateCreated: string;
   dateDue: string;
   dateDelivery: string;
+  taxPeriod?: string; // e.g. "2024-05"
   placeOfIssue: string;
   paymentMethod: PaymentMethod;
   paymentStatus?: PaymentStatus;
@@ -133,6 +138,7 @@ export interface ERPDocument {
   note?: string;
   language: Language;
   currency: string;
+  isDualLanguage?: boolean;
 }
 
 export interface CalculationDoc extends ERPDocument {

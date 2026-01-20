@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import ClientList from './components/ClientList';
 import InventoryList from './components/InventoryList';
 import Reports from './components/Reports';
+import KIRKURReports from './components/KIRKURReports';
 import Login from './components/Login';
 import TenantManagement from './components/TenantManagement';
 import AuditLog from './components/AuditLog';
@@ -19,7 +20,7 @@ import { backendService } from './services/backendService';
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | DocType | 'clients' | 'inventory' | 'reports' | 'settings' | 'tenant-admin' | 'audit-log'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | DocType | 'clients' | 'inventory' | 'reports' | 'accounting' | 'settings' | 'tenant-admin' | 'audit-log'>('dashboard');
   const [lang, setLang] = useState<Language>('BS');
   const [documents, setDocuments] = useState<ERPDocument[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -31,20 +32,28 @@ const App: React.FC = () => {
     if (currentUser) {
       const loadTenantData = async () => {
         setIsLoading(true);
-        const tenants = await backendService.getTenants();
-        const myTenant = tenants.find(t => t.id === currentUser.tenantId);
-        if (myTenant) setActiveTenant(myTenant);
+        try {
+          const tenants = await backendService.getTenants();
+          const myTenant = tenants.find(t => t.id === currentUser.tenantId);
+          if (myTenant) {
+             setActiveTenant(myTenant);
+             setLang(myTenant.company.defaultLanguage || 'BS');
+          }
 
-        const [docs, cls, inv] = await Promise.all([
-          backendService.getData<ERPDocument>(currentUser.tenantId, 'documents'),
-          backendService.getData<Client>(currentUser.tenantId, 'clients'),
-          backendService.getData<InventoryItem>(currentUser.tenantId, 'inventory')
-        ]);
-        
-        setDocuments(docs);
-        setClients(cls);
-        setInventory(inv);
-        setIsLoading(false);
+          const [docs, cls, inv] = await Promise.all([
+            backendService.getData<ERPDocument>(currentUser.tenantId, 'documents'),
+            backendService.getData<Client>(currentUser.tenantId, 'clients'),
+            backendService.getData<InventoryItem>(currentUser.tenantId, 'inventory')
+          ]);
+          
+          setDocuments(docs);
+          setClients(cls);
+          setInventory(inv);
+        } catch (e) {
+          console.error("Data load failed", e);
+        } finally {
+          setIsLoading(false);
+        }
       };
       loadTenantData();
     }
@@ -66,7 +75,7 @@ const App: React.FC = () => {
   const handleSaveDoc = async (doc: ERPDocument) => {
     let updatedDocs;
     let actionType: any = editingDoc ? 'UPDATE' : 'CREATE';
-    let details = `${editingDoc ? 'Ažuriran' : 'Kreiran'} dokument ${doc.number} za klijenta ${doc.client.name}`;
+    let details = `${editingDoc ? 'Ažuriran' : 'Kreiran'} dokument ${doc.number}`;
 
     if (editingDoc) {
       updatedDocs = documents.map(d => d.id === doc.id ? doc : d);
@@ -77,17 +86,32 @@ const App: React.FC = () => {
     setDocuments(updatedDocs);
     await backendService.saveData(currentUser!, 'documents', updatedDocs, actionType, details);
 
-    if (doc.type === DocType.INVOICE && !editingDoc) {
-      const updatedInv = inventory.map(inv => {
-        const totalSold = doc.items.filter(i => i.inventoryItemId === inv.id).reduce((acc, c) => acc + c.quantity, 0);
-        return totalSold > 0 ? { ...inv, quantity: inv.quantity - totalSold } : inv;
-      });
-      setInventory(updatedInv);
-      await backendService.saveData(currentUser!, 'inventory', updatedInv, 'UPDATE', `Smanjena zaliha artikala nakon izdavanja računa ${doc.number}`);
-    }
-
     setEditingDoc(null);
     setActiveTab(doc.type);
+  };
+
+  const handleCloneDoc = (doc: ERPDocument) => {
+    const cloned: ERPDocument = {
+      ...doc,
+      id: crypto.randomUUID(),
+      number: `KOP-` + doc.number,
+      dateCreated: new Date().toISOString().split('T')[0],
+      dateDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    };
+    setEditingDoc(cloned);
+  };
+
+  const handleConvertToInvoice = (offer: ERPDocument) => {
+    const invoice: ERPDocument = {
+      ...offer,
+      id: crypto.randomUUID(),
+      type: DocType.INVOICE,
+      number: `RN-${new Date().getFullYear()}-${String(Math.floor(Math.random()*1000)).padStart(3, '0')}`,
+      dateCreated: new Date().toISOString().split('T')[0],
+      dateDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    };
+    setEditingDoc(invoice);
+    setActiveTab(DocType.INVOICE);
   };
 
   if (!currentUser) return <Login onLogin={handleLogin} />;
@@ -107,19 +131,20 @@ const App: React.FC = () => {
 
         <header className="flex justify-between items-center mb-8 no-print">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-2xl font-black text-gray-800 tracking-tighter uppercase italic">
               {activeTab === 'dashboard' ? t.dashboard : 
+               activeTab === 'accounting' ? t.accounting :
                activeTab === 'audit-log' ? 'Audit Log' : 
                t.docTypeNames[activeTab as DocType] || activeTab}
             </h1>
-            <p className="text-sm text-gray-500">{activeTenant?.company.name} | <span className="text-blue-600 font-bold uppercase text-[10px]">{currentUser.role}</span></p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{activeTenant?.company.name}</p>
           </div>
           <div className="flex items-center gap-4">
              <select value={lang} onChange={(e) => setLang(e.target.value as Language)} className="bg-white border rounded-lg px-3 py-1.5 text-xs font-bold shadow-sm">
                 <option value="BS">BS</option>
                 <option value="EN">EN</option>
              </select>
-             <button onClick={handleLogout} className="text-xs font-bold text-red-500 hover:underline">Odjava</button>
+             <button onClick={handleLogout} className="text-[10px] font-black uppercase text-red-500 hover:underline tracking-widest">Odjava</button>
           </div>
         </header>
 
@@ -132,6 +157,8 @@ const App: React.FC = () => {
             documents={documents.filter(d => d.type === activeTab)} 
             onEdit={setEditingDoc}
             onNew={() => setEditingDoc(null)}
+            onClone={handleCloneDoc}
+            onConvertToInvoice={activeTab === DocType.OFFER ? handleConvertToInvoice : undefined}
             onDelete={async (id) => {
               const updated = documents.filter(d => d.id !== id);
               setDocuments(updated);
@@ -141,10 +168,10 @@ const App: React.FC = () => {
           />
         )}
 
-        {(activeTab === DocType.INVOICE || activeTab === DocType.OFFER || activeTab === DocType.PURCHASE_ORDER) && editingDoc !== undefined && (
+        {(activeTab === DocType.INVOICE || activeTab === DocType.OFFER || activeTab === DocType.PURCHASE_ORDER) && editingDoc !== undefined && editingDoc !== null && (
           <DocumentForm 
             initialDoc={editingDoc} 
-            type={activeTab as DocType}
+            type={editingDoc.type}
             company={activeTenant!.company}
             clients={clients}
             inventory={inventory}
@@ -157,6 +184,7 @@ const App: React.FC = () => {
         {activeTab === 'clients' && <ClientList clients={clients} setClients={setClients as any} lang={lang} tenantId={currentUser.tenantId} />}
         {activeTab === 'inventory' && <InventoryList inventory={inventory} setInventory={setInventory as any} lang={lang} tenantId={currentUser.tenantId} />}
         {activeTab === 'reports' && <Reports documents={documents} lang={lang} />}
+        {activeTab === 'accounting' && <KIRKURReports documents={documents} lang={lang} />}
         
         {activeTab === 'tenant-admin' && currentUser.role === 'SUPER_ADMIN' && (
           <TenantManagement currentUser={currentUser} onImpersonate={(tenantId) => { setCurrentUser({...currentUser, tenantId}); setActiveTab('dashboard'); }} />

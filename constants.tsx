@@ -3,6 +3,12 @@ import { Language, DocType } from './types';
 
 export const VAT_RATE_BH = 17;
 
+export const VAT_CATEGORIES = [
+  { label: 'Standardna (17%)', value: 17, code: 'S' },
+  { label: 'Izvoz (0%)', value: 0, code: 'E' },
+  { label: 'Oslobođeno (Čl. 24/25)', value: 0, code: 'O' }
+];
+
 export const TRANSLATIONS: Record<Language, any> = {
   BS: {
     dashboard: 'Kontrolna tabla',
@@ -13,6 +19,8 @@ export const TRANSLATIONS: Record<Language, any> = {
     clients: 'Klijenti',
     inventory: 'Lager Lista',
     settings: 'Postavke',
+    accounting: 'Računovodstvo',
+    reports: 'Izvještaji',
     newDoc: 'Novi dokument',
     save: 'Sačuvaj',
     print: 'Štampaj',
@@ -43,6 +51,9 @@ export const TRANSLATIONS: Record<Language, any> = {
     inventoryItems: 'Artikli na stanju',
     code: 'Šifra',
     stock: 'Zaliha',
+    clone: 'Kopiraj',
+    convertToInvoice: 'Pretvori u račun',
+    dualLanguage: 'Dvojezični prikaz (BS/EN)',
     docTypeNames: {
       [DocType.INVOICE]: 'Račun-Otpremnica',
       [DocType.OFFER]: 'Ponuda',
@@ -59,6 +70,8 @@ export const TRANSLATIONS: Record<Language, any> = {
     clients: 'Clients',
     inventory: 'Inventory',
     settings: 'Settings',
+    accounting: 'Accounting',
+    reports: 'Reports',
     newDoc: 'New Document',
     save: 'Save',
     print: 'Print',
@@ -89,6 +102,9 @@ export const TRANSLATIONS: Record<Language, any> = {
     inventoryItems: 'Stock Items',
     code: 'Code',
     stock: 'Stock',
+    clone: 'Clone',
+    convertToInvoice: 'Convert to Invoice',
+    dualLanguage: 'Dual Language Mode (BS/EN)',
     docTypeNames: {
       [DocType.INVOICE]: 'Invoice',
       [DocType.OFFER]: 'Offer',
