@@ -10,8 +10,8 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Koristimo KIRKURReports.tsx kako bismo se uskladili sa postojećim fajlom u sistemu i izbjegli case-sensitivity konflikte pri kompilaciji
-import KirkurReports from './components/KIRKURReports.tsx';
+// Koristimo isključivo verziju sa malim slovom kako bismo izbjegli konflikte datoteka
+import KirkurReports from './components/KirkurReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
 import AuditLog from './components/AuditLog.tsx';
