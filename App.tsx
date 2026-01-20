@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DocType, ERPDocument, Company, Language, Client, InventoryItem, User, Tenant, CalculationDoc } from './types.ts';
 import { TRANSLATIONS } from './constants.tsx';
@@ -10,8 +11,8 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Koristimo isključivo verziju sa malim slovom kako bismo izbjegli konflikte datoteka
-import KirkurReports from './components/KirkurReports.tsx';
+// Fix: Remove the .tsx extension from the import to help resolve casing conflicts between duplicate files in the compilation context.
+import KirkurReports from './components/KirkurReports';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
 import AuditLog from './components/AuditLog.tsx';
