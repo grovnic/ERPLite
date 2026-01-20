@@ -1,9 +1,14 @@
 
 import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types';
 
-// Assuming these are provided via environment variables in Vercel/hosting
-const SB_URL = (process.env as any).SUPABASE_URL || '';
-const SB_KEY = (process.env as any).SUPABASE_ANON_KEY || '';
+/**
+ * VAŽNO: 
+ * Za rad u browseru OBAVEZNO koristi "anon public" ključ iz Supabase Dashboard-a.
+ * (Settings -> API -> Project API keys -> anon public)
+ * NEMOJ koristiti "service_role" ključ jer će Supabase blokirati zahtjeve.
+ */
+const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
 
 const headers = {
   'apikey': SB_KEY,
@@ -13,13 +18,14 @@ const headers = {
 };
 
 const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
-  if (!SB_URL) throw new Error("Supabase URL is not configured.");
   const response = await fetch(`${SB_URL}/rest/v1/${endpoint}`, {
     ...options,
     headers: { ...headers, ...options.headers }
   });
+
   if (!response.ok) {
-    const err = await response.json();
+    const err = await response.json().catch(() => ({ message: 'Greška u komunikaciji sa bazom.' }));
+    // Ako dobijete "Forbidden", to znači da i dalje koristite secret key u browseru.
     throw new Error(err.message || "Baza podataka je vratila grešku.");
   }
   return response.json();
@@ -27,12 +33,12 @@ const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
 
 export const backendService = {
   async _log(user: User, action: AuditAction, resource: string, details: string) {
-    const entry: AuditEntry = {
+    const entry = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      userId: user.id,
+      user_id: user.id,
       username: user.username,
-      tenantId: user.tenantId,
+      tenant_id: user.tenantId,
       action,
       resource,
       details
@@ -59,7 +65,7 @@ export const backendService = {
       const tenants = await sbFetch(`tenants?id=eq.${user.tenant_id}&select=status`);
       const tenant = tenants[0];
 
-      if (tenant?.status === 'PENDING') return { user: null, error: 'Nalog čeka odobrenje.' };
+      if (tenant?.status === 'PENDING') return { user: null, error: 'Vaš nalog čeka odobrenje.' };
       if (tenant?.status === 'REJECTED') return { user: null, error: 'Nalog je odbijen.' };
 
       const formattedUser: User = {
@@ -70,10 +76,10 @@ export const backendService = {
         tenantId: user.tenant_id
       };
 
-      await this._log(formattedUser, 'LOGIN', 'System', `Prijava korisnika u oblak.`);
+      await this._log(formattedUser, 'LOGIN', 'System', `Uspješna prijava.`);
       return { user: formattedUser };
     } catch (e: any) {
-      return { user: null, error: e.message };
+      return { user: null, error: e.message || "Konekcija sa bazom nije uspjela." };
     }
   },
 
@@ -87,7 +93,7 @@ export const backendService = {
         status: 'PENDING',
         created_at: new Date().toISOString(),
         company: companyData,
-        security_policy: { sessionTimeoutMinutes: 30 }
+        security_policy: { sessionTimeoutMinutes: 60 }
       };
 
       const newUser = {
@@ -113,7 +119,7 @@ export const backendService = {
       method: 'PATCH',
       body: JSON.stringify({ status })
     });
-    await this._log(adminUser, status === 'APPROVED' ? 'APPROVE' : 'REJECT', 'Tenant', `Promjena statusa za ${tenantId}`);
+    await this._log(adminUser, status === 'APPROVED' ? 'APPROVE' : 'REJECT', 'Tenant', `Promjena statusa u: ${status}`);
   },
 
   async getTenants(): Promise<Tenant[]> {
@@ -128,29 +134,42 @@ export const backendService = {
   },
 
   async getData<T>(tenantId: string, resource: string): Promise<T[]> {
-    const raw = await sbFetch(`${resource}?tenant_id=eq.${tenantId}&select=*`);
-    return raw.map((r: any) => ({
-      ...r,
-      ...r.data // Extract nested JSON data
-    }));
+    try {
+      const raw = await sbFetch(`${resource}?tenant_id=eq.${tenantId}&select=*`);
+      return raw.map((r: any) => ({
+        id: r.id,
+        tenantId: r.tenant_id,
+        ...r.data
+      }));
+    } catch (e) {
+      console.error(`Greška pri učitavanju: ${resource}`, e);
+      return [];
+    }
   },
 
   async saveData<T extends { id: string, tenantId: string }>(user: User, resource: string, data: T[], action: AuditAction = 'UPDATE', details?: string): Promise<void> {
-    // Supabase strategy: Upsert each item or delete existing for tenant and insert new
-    // For simplicity, we'll upsert using the REST API bulk feature
-    for (const item of data) {
+    if (data.length === 0) return;
+
+    const payload = data.map(item => {
       const { id, tenantId, ...rest } = item as any;
-      await sbFetch(resource, {
-        method: 'POST',
-        headers: { 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({
-          id,
-          tenant_id: tenantId,
-          data: rest // Store dynamic properties in a JSONB column
-        })
-      });
-    }
-    await this._log(user, action, resource, details || `Sinhronizacija: ${resource}`);
+      return {
+        id,
+        tenant_id: tenantId,
+        data: rest,
+        ...(rest.type ? { type: rest.type } : {}),
+        ...(rest.number ? { number: rest.number } : {}),
+        ...(rest.code ? { code: rest.code } : {}),
+        ...(rest.name ? { name: rest.name } : {})
+      };
+    });
+
+    await sbFetch(resource, {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+
+    await this._log(user, action, resource, details || `Sinhronizacija podataka.`);
   },
 
   async getAuditLogs(tenantId: string | 'ALL'): Promise<AuditEntry[]> {
@@ -169,7 +188,6 @@ export const backendService = {
   },
 
   async exportFullBackup(): Promise<any> {
-    // Exporting from cloud is the same logic as local but fetching all stores
     const backup: any = {};
     const stores = ['tenants', 'users', 'documents', 'clients', 'inventory', 'audit_log'];
     for (const store of stores) {
@@ -178,20 +196,17 @@ export const backendService = {
     return backup;
   },
 
-  // Fix: Added missing importFullBackup method to restore database state from backup JSON
   async importFullBackup(user: User, backupData: any): Promise<void> {
     const stores = ['tenants', 'users', 'documents', 'clients', 'inventory', 'audit_log'];
     for (const store of stores) {
       if (backupData[store] && Array.isArray(backupData[store])) {
-        for (const item of backupData[store]) {
-          await sbFetch(store, {
-            method: 'POST',
-            headers: { 'Prefer': 'resolution=merge-duplicates' },
-            body: JSON.stringify(item)
-          });
-        }
+        await sbFetch(store, {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify(backupData[store])
+        });
       }
     }
-    await this._log(user, 'UPDATE', 'System', 'Uvoz cijele baze podataka iz backupa.');
+    await this._log(user, 'UPDATE', 'System', 'Uvoz backupa u Cloud.');
   }
 };
