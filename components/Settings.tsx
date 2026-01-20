@@ -142,6 +142,17 @@ const Settings: React.FC<SettingsProps> = ({ company, setCompany, lang, currentU
             <label className="block text-xs font-black text-gray-400 uppercase mb-2">PDV Broj</label>
             <input className="w-full border-2 border-gray-50 rounded-xl px-4 py-3" value={company.pdvNumber} onChange={e => update('pdvNumber', e.target.value)}/>
           </div>
+          <div>
+            <label className="block text-xs font-black text-gray-400 uppercase mb-2">Podrazumijevani jezik dokumenata</label>
+            <select className="w-full border-2 border-gray-50 rounded-xl px-4 py-3" value={company.defaultLanguage} onChange={e => update('defaultLanguage', e.target.value as Language)}>
+               <option value="BS">Bosanski (BS)</option>
+               <option value="EN">Engleski (EN)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-black text-gray-400 uppercase mb-2">Mjesto izdavanja</label>
+            <input className="w-full border-2 border-gray-50 rounded-xl px-4 py-3" value={company.defaultPlaceOfIssue} onChange={e => update('defaultPlaceOfIssue', e.target.value)}/>
+          </div>
         </div>
 
         <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
