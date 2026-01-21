@@ -3,24 +3,24 @@
 import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, TenantStatus } from '../types';
 
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
-const SB_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8AE'; 
+const SB_KEY: string = 'VAŠ_ANON_PUBLIC_KEY_OVDJE'; 
 
 // Provjera da li je ključ ostao placeholder
-const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A' && SB_KEY.trim().length > 30;
+const isSupabaseConfigured = SB_KEY !== 'VAŠ_ANON_PUBLIC_KEY_OVDJE' && SB_KEY.trim().length > 30;
 
-const headers = {
+const getHeaders = () => ({
   'apikey': SB_KEY,
   'Authorization': `Bearer ${SB_KEY}`,
   'Content-Type': 'application/json',
   'Prefer': 'return=representation'
-};
+});
 
 const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
   if (!isSupabaseConfigured) throw new Error("Supabase is not configured.");
   
   const response = await fetch(`${SB_URL}/rest/v1/${endpoint}`, {
     ...options,
-    headers: { ...headers, ...options.headers }
+    headers: { ...getHeaders(), ...options.headers }
   });
 
   if (!response.ok) {
@@ -32,7 +32,8 @@ const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
 
 const getLocal = (key: string) => {
   try {
-    return JSON.parse(localStorage.getItem(`erp_${key}`) || '[]');
+    const data = localStorage.getItem(`erp_${key}`);
+    return data ? JSON.parse(data) : [];
   } catch (e) {
     return [];
   }
@@ -97,7 +98,8 @@ export const backendService = {
         return { user: null, error: 'Koristite admin@demo.ba za demo pristup.' };
       }
     } catch (e: any) {
-      return { user: null, error: e.message || "Konekcija sa bazom nije uspjela." };
+      console.error("Login service error", e);
+      return { user: null, error: "Konekcija sa bazom nije uspjela. Koristite demo nalog." };
     }
   },
 
@@ -135,10 +137,14 @@ export const backendService = {
 
   async getTenants(): Promise<Tenant[]> {
     if (isSupabaseConfigured) {
-      const raw = await sbFetch('tenants?select=*');
-      return raw.map((r: any) => ({
-        id: r.id, status: r.status, createdAt: r.created_at, company: r.company, securityPolicy: r.security_policy
-      }));
+      try {
+        const raw = await sbFetch('tenants?select=*');
+        return raw.map((r: any) => ({
+          id: r.id, status: r.status, createdAt: r.created_at, company: r.company, securityPolicy: r.security_policy
+        }));
+      } catch (e) {
+        return [];
+      }
     } else {
       const raw = getLocal('tenants');
       if (raw.length === 0) {
@@ -194,11 +200,13 @@ export const backendService = {
 
   async getAuditLogs(tenantId: string | 'ALL'): Promise<AuditEntry[]> {
     if (isSupabaseConfigured) {
-      const query = tenantId === 'ALL' ? 'audit_log?select=*&order=timestamp.desc' : `audit_log?tenant_id=eq.${tenantId}&select=*&order=timestamp.desc`;
-      const raw = await sbFetch(query);
-      return raw.map((r: any) => ({
-        id: r.id, timestamp: r.timestamp, userId: r.user_id, username: r.username, tenantId: r.tenant_id, action: r.action, resource: r.resource, details: r.details
-      }));
+      try {
+        const query = tenantId === 'ALL' ? 'audit_log?select=*&order=timestamp.desc' : `audit_log?tenant_id=eq.${tenantId}&select=*&order=timestamp.desc`;
+        const raw = await sbFetch(query);
+        return raw.map((r: any) => ({
+          id: r.id, timestamp: r.timestamp, userId: r.user_id, username: r.username, tenantId: r.tenant_id, action: r.action, resource: r.resource, details: r.details
+        }));
+      } catch (e) { return []; }
     } else {
       const all = getLocal('audit_log');
       return tenantId === 'ALL' ? all : all.filter((l: any) => l.tenantId === tenantId);
@@ -209,17 +217,17 @@ export const backendService = {
     const backup: any = {};
     const stores = ['tenants', 'users', 'documents', 'clients', 'inventory', 'audit_log'];
     if (isSupabaseConfigured) {
-      for (const store of stores) backup[store] = await sbFetch(`${store}?select=*`);
+      for (const store of stores) {
+        try { backup[store] = await sbFetch(`${store}?select=*`); } catch(e) { backup[store] = []; }
+      }
     } else {
       for (const store of stores) backup[store] = getLocal(store);
     }
     return backup;
   },
 
-  // Fix: Added missing importFullBackup method as requested by Settings.tsx
   async importFullBackup(user: User, data: any): Promise<void> {
     const stores = ['tenants', 'users', 'documents', 'clients', 'inventory', 'audit_log'];
-    // Overwrite local storage stores with data from backup
     for (const store of stores) {
       if (data[store]) {
         localStorage.setItem(`erp_${store}`, JSON.stringify(data[store]));
