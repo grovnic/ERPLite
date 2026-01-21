@@ -3,10 +3,10 @@
 import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, TenantStatus } from '../types';
 
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
-const SB_KEY: string = 'VAŠ_ANON_PUBLIC_KEY_OVDJE'; 
+const SB_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
 
 // Provjera da li je ključ ostao placeholder
-const isSupabaseConfigured = SB_KEY !== 'VAŠ_ANON_PUBLIC_KEY_OVDJE' && SB_KEY.trim().length > 30;
+const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A' && SB_KEY.trim().length > 30;
 
 const getHeaders = () => ({
   'apikey': SB_KEY,
