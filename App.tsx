@@ -11,8 +11,8 @@ import Settings from './components/Settings';
 import ClientList from './components/ClientList';
 import InventoryList from './components/InventoryList';
 import Reports from './components/Reports';
-// Fix: Consistently import KirkurReports with proper casing to avoid build conflicts
-import KirkurReports from './components/KirkurReports';
+// Fixed casing error: imported KIRKURReports to match the file name known to the compiler
+import KirkurReports from './components/KIRKURReports';
 import Login from './components/Login';
 import TenantManagement from './components/TenantManagement';
 import AuditLog from './components/AuditLog';
