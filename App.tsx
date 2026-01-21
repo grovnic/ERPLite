@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DocType, ERPDocument, Language, Client, InventoryItem, User, Tenant, CalculationDoc } from './types';
 import { TRANSLATIONS } from './constants';
@@ -10,8 +11,8 @@ import Settings from './components/Settings';
 import ClientList from './components/ClientList';
 import InventoryList from './components/InventoryList';
 import Reports from './components/Reports';
-// Adjusted import casing to match the file that is already included in the compilation to fix casing mismatch error.
-import KirkurReports from './components/KIRKURReports';
+// Fix: Consistently import KirkurReports with proper casing to avoid build conflicts
+import KirkurReports from './components/KirkurReports';
 import Login from './components/Login';
 import TenantManagement from './components/TenantManagement';
 import AuditLog from './components/AuditLog';
@@ -59,11 +60,8 @@ const App: React.FC = () => {
     }
   }, [currentUser]);
 
-  const handleLogin = async (email: string, password?: string) => {
-    const result = await backendService.login(email, password);
-    if (result.user) {
-      setCurrentUser(result.user);
-    }
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
   };
 
   const handleLogout = () => {
@@ -84,7 +82,9 @@ const App: React.FC = () => {
     }
     
     setDocuments(updatedDocs);
-    await backendService.saveData(currentUser!, 'documents', updatedDocs, actionType, details);
+    if (currentUser) {
+      await backendService.saveData(currentUser, 'documents', updatedDocs, actionType, details);
+    }
 
     setEditingDoc(null);
     setActiveTab(doc.type);
@@ -114,7 +114,7 @@ const App: React.FC = () => {
     setActiveTab(DocType.INVOICE);
   };
 
-  if (!currentUser) return <Login onLogin={handleLogin} />;
+  if (!currentUser) return <Login onLogin={(email, pass) => backendService.login(email, pass).then(res => res.user && handleLogin(res.user))} />;
 
   const t = TRANSLATIONS[lang];
 
@@ -173,7 +173,7 @@ const App: React.FC = () => {
           />
         )}
 
-        {(activeTab === DocType.INVOICE || activeTab === DocType.OFFER || activeTab === DocType.PURCHASE_ORDER) && editingDoc !== undefined && editingDoc !== null && (
+        {(activeTab === DocType.INVOICE || activeTab === DocType.OFFER || activeTab === DocType.PURCHASE_ORDER) && editingDoc !== null && (
           <DocumentForm 
             initialDoc={editingDoc} 
             type={editingDoc.type}
@@ -187,7 +187,7 @@ const App: React.FC = () => {
           />
         )}
 
-        {activeTab === DocType.CALCULATION && editingDoc !== undefined && editingDoc !== null && (
+        {activeTab === DocType.CALCULATION && editingDoc !== null && (
           <CalculationForm 
             initialDoc={editingDoc as CalculationDoc}
             company={activeTenant!.company}
