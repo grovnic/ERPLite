@@ -5,49 +5,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bratts ERP Lite 1.0 - Profesionalno BH Poslovanje</title>
-  
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
-  
   <style>
-    body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #0f172a; }
+    body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; }
     #root:empty::after {
-      content: "Sistem se inicijalizuje...";
-      display: block; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
-      color: #2563eb; animation: erpPulse 1.5s infinite ease-in-out; text-align: center;
-      margin-top: 30vh; font-size: 0.8rem;
+      content: "Sistem se učitava...";
+      display: block; text-align: center; margin-top: 30vh;
+      font-weight: 900; color: #2563eb; text-transform: uppercase;
+      letter-spacing: 0.1em; animation: pulse 1.5s infinite;
     }
-    @keyframes erpPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.98); } }
-    
-    #error-display {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #fff; z-index: 9999; padding: 2rem; color: #ef4444; font-family: monospace;
-      white-space: pre-wrap; overflow-y: auto; border: 10px solid #ef4444;
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
-
-  <script>
-    window.process = { env: { NODE_ENV: 'production', API_KEY: '' } };
-    window.onerror = function(msg, url, line, col, error) {
-      if (url && url.includes('esm.sh')) return; // Ignore CDN noise
-      const display = document.getElementById('error-display');
-      if (display) {
-        display.style.display = 'block';
-        display.innerHTML += `<b>Sistemska greška:</b> ${msg}\n<b>Lokacija:</b> ${url}:${line}\n\n`;
-      }
-      return false;
-    };
-  </script>
-
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@19.0.0",
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "@google/genai": "https://esm.sh/@google/genai@1.3.0",
     "recharts": "https://esm.sh/recharts@2.12.7",
+    "@google/genai": "https://esm.sh/@google/genai@1.3.0",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
@@ -56,9 +34,7 @@
 </head>
 <body>
   <div id="root"></div>
-  <div id="error-display"><h3>Kritična greška pri pokretanju:</h3></div>
   
-  <!-- Korištenje esm.sh/run za dinamičko učitavanje TSX stabla -->
   <script type="module" src="https://esm.sh/run"></script>
 
   <script type="text/tsx">
@@ -66,9 +42,10 @@
     import { createRoot } from 'react-dom/client';
     import App from './App.tsx';
 
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      createRoot(rootElement).render(
+    const container = document.getElementById('root');
+    if (container) {
+      const root = createRoot(container);
+      root.render(
         <React.StrictMode>
           <App />
         </React.StrictMode>

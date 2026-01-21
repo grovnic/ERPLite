@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { DocType, ERPDocument, Language, Client, InventoryItem, User, Tenant, CalculationDoc } from './types.ts';
 import { TRANSLATIONS } from './constants.tsx';
@@ -11,8 +10,7 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Fix: Changed import casing to match KIRKURReports.tsx to resolve "Already included file name" error
-import KirkurReports from './components/KIRKURReports.tsx';
+import KirkurReports from './components/KirkurReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
 import AuditLog from './components/AuditLog.tsx';
@@ -71,11 +69,12 @@ const App: React.FC = () => {
   };
 
   const handleSaveDoc = async (doc: ERPDocument) => {
-    let updatedDocs;
-    const actionType: any = editingDoc ? 'UPDATE' : 'CREATE';
-    const details = `${editingDoc ? 'Ažuriran' : 'Kreiran'} dokument ${doc.number}`;
+    let updatedDocs: ERPDocument[] = [];
+    const isEditing = !!editingDoc;
+    const actionType = isEditing ? 'UPDATE' : 'CREATE';
+    const details = `${isEditing ? 'Ažuriran' : 'Kreiran'} dokument ${doc.number}`;
 
-    if (editingDoc) {
+    if (isEditing) {
       updatedDocs = documents.map(d => d.id === doc.id ? doc : d);
     } else {
       updatedDocs = [doc, ...documents];
