@@ -11,7 +11,7 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Fix: Import name casing to match the canonical filename 'KIRKURReports.tsx' to avoid TypeScript casing conflict errors
+// Fix: Changed import casing to match KIRKURReports.tsx to resolve "Already included file name" error
 import KirkurReports from './components/KIRKURReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
@@ -72,8 +72,8 @@ const App: React.FC = () => {
 
   const handleSaveDoc = async (doc: ERPDocument) => {
     let updatedDocs;
-    let actionType: any = editingDoc ? 'UPDATE' : 'CREATE';
-    let details = `${editingDoc ? 'Ažuriran' : 'Kreiran'} dokument ${doc.number}`;
+    const actionType: any = editingDoc ? 'UPDATE' : 'CREATE';
+    const details = `${editingDoc ? 'Ažuriran' : 'Kreiran'} dokument ${doc.number}`;
 
     if (editingDoc) {
       updatedDocs = documents.map(d => d.id === doc.id ? doc : d);
