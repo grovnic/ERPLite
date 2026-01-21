@@ -6,7 +6,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "text/javascript"
+          "value": "application/javascript; charset=utf-8"
         }
       ]
     },
@@ -15,7 +15,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "text/javascript"
+          "value": "application/javascript; charset=utf-8"
         }
       ]
     }

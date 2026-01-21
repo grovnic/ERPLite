@@ -11,22 +11,32 @@
   <link rel="stylesheet" href="index.css">
   
   <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
-      margin: 0; padding: 0; 
-      background-color: #f1f5f9; color: #0f172a;
-    }
+    body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #0f172a; }
     #root:empty::after {
-      content: "Pokretanje Bratts ERP sistema...";
+      content: "Učitavanje sistema...";
       display: block; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
       color: #2563eb; animation: erpPulse 1.5s infinite ease-in-out; text-align: center;
       margin-top: 30vh; font-size: 0.8rem;
     }
     @keyframes erpPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.98); } }
+    
+    #error-display {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #fff; z-index: 9999; padding: 2rem; color: #ef4444; font-family: monospace;
+      white-space: pre-wrap; overflow-y: auto;
+    }
   </style>
 
   <script>
     window.process = { env: { NODE_ENV: 'production', API_KEY: '' } };
+    window.onerror = function(msg, url, line, col, error) {
+      const display = document.getElementById('error-display');
+      if (display) {
+        display.style.display = 'block';
+        display.innerHTML += `<b>Greška:</b> ${msg}\n<b>Fajl:</b> ${url}\n\n`;
+      }
+      return false;
+    };
   </script>
 
   <script type="importmap">
@@ -46,8 +56,25 @@
 </head>
 <body>
   <div id="root"></div>
-  <!-- Browser zahtijeva type="module" i punu putanju za TSX -->
-  <script type="module" src="index.tsx"></script>
+  <div id="error-display"><h3>Kritična greška pri pokretanju:</h3></div>
+  
+  <script type="module" src="https://esm.sh/run"></script>
+  
+  <script type="text/tsx">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import App from './App.tsx';
+
+    const container = document.getElementById('root');
+    if (container) {
+      const root = createRoot(container);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    }
+  </script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ import Settings from './components/Settings.tsx';
 import ClientList from './components/ClientList.tsx';
 import InventoryList from './components/InventoryList.tsx';
 import Reports from './components/Reports.tsx';
-// Adjusted import path to match existing file casing KIRKURReports.tsx and fix compilation error
+// Fix: Import name casing to match the canonical filename 'KIRKURReports.tsx' to avoid TypeScript casing conflict errors
 import KirkurReports from './components/KIRKURReports.tsx';
 import Login from './components/Login.tsx';
 import TenantManagement from './components/TenantManagement.tsx';
@@ -47,9 +47,9 @@ const App: React.FC = () => {
             backendService.getData<InventoryItem>(currentUser.tenantId, 'inventory')
           ]);
           
-          setDocuments(docs);
-          setClients(cls);
-          setInventory(inv);
+          setDocuments(docs || []);
+          setClients(cls || []);
+          setInventory(inv || []);
         } catch (e) {
           console.error("Data load failed", e);
         } finally {
