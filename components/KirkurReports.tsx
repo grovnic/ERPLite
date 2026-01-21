@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ERPDocument, DocType, Language } from '../types';
+import { ERPDocument, DocType, Language } from '../types.ts';
 
 interface KirkurReportsProps {
   documents: ERPDocument[];
@@ -11,7 +11,7 @@ const KirkurReports: React.FC<KirkurReportsProps> = ({ documents, lang }) => {
   const [reportType, setReportType] = useState<'KIR' | 'KUR'>('KIR');
   const [period, setPeriod] = useState(new Date().toISOString().substring(0, 7));
 
-  const filtered = documents.filter(doc => {
+  const filtered = (documents || []).filter(doc => {
     const isPeriod = doc.taxPeriod === period;
     if (reportType === 'KIR') return isPeriod && (doc.type === DocType.INVOICE);
     if (reportType === 'KUR') return isPeriod && (doc.type === DocType.CALCULATION);
@@ -59,8 +59,8 @@ const KirkurReports: React.FC<KirkurReportsProps> = ({ documents, lang }) => {
             </thead>
             <tbody>
               {filtered.map((doc, idx) => {
-                const sub17 = doc.items.filter(i => i.vatRate === 17).reduce((acc, i) => acc + (i.quantity * i.pricePerUnit * (1 - i.discount/100)), 0);
-                const sub0 = doc.items.filter(i => i.vatRate === 0).reduce((acc, i) => acc + (i.quantity * i.pricePerUnit * (1 - i.discount/100)), 0);
+                const sub17 = (doc.items || []).filter(i => i.vatRate === 17).reduce((acc, i) => acc + (i.quantity * i.pricePerUnit * (1 - i.discount/100)), 0);
+                const sub0 = (doc.items || []).filter(i => i.vatRate === 0).reduce((acc, i) => acc + (i.quantity * i.pricePerUnit * (1 - i.discount/100)), 0);
                 const vat = sub17 * 0.17;
                 return (
                   <tr key={doc.id} className="border-b">
@@ -83,10 +83,10 @@ const KirkurReports: React.FC<KirkurReportsProps> = ({ documents, lang }) => {
             <tfoot className="bg-gray-100 font-black">
                <tr>
                   <td colSpan={5} className="px-3 py-4 text-right uppercase border">Ukupno za period:</td>
-                  <td className="px-3 py-4 text-right border">{filtered.reduce((acc, doc) => acc + doc.items.filter(i => i.vatRate === 17).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100)), 0), 0).toFixed(2)}</td>
-                  <td className="px-3 py-4 text-right border">{filtered.reduce((acc, doc) => acc + doc.items.filter(i => i.vatRate === 0).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100)), 0), 0).toFixed(2)}</td>
-                  <td className="px-3 py-4 text-right border text-blue-600">{filtered.reduce((acc, doc) => acc + doc.items.filter(i => i.vatRate === 17).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100)*0.17), 0), 0).toFixed(2)}</td>
-                  <td className="px-3 py-4 text-right border">{filtered.reduce((acc, doc) => acc + (doc.items.reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100) * (1 + i.vatRate/100)), 0)), 0).toFixed(2)}</td>
+                  <td className="px-3 py-4 text-right border">{filtered.reduce((acc, doc) => acc + (doc.items || []).filter(i => i.vatRate === 17).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100)), 0), 0).toFixed(2)}</td>
+                  <td className="px-3 py-4 text-right border">{filtered.reduce((acc, doc) => acc + (doc.items || []).filter(i => i.vatRate === 0).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100)), 0), 0).toFixed(2)}</td>
+                  <td className="px-3 py-4 text-right border text-blue-600">{filtered.reduce((acc, doc) => acc + (doc.items || []).filter(i => i.vatRate === 17).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100)*0.17), 0), 0).toFixed(2)}</td>
+                  <td className="px-3 py-4 text-right border">{filtered.reduce((acc, doc) => acc + ((doc.items || []).reduce((acc2, i) => acc2 + (i.quantity * i.pricePerUnit * (1-i.discount/100) * (1 + i.vatRate/100)), 0)), 0).toFixed(2)}</td>
                </tr>
             </tfoot>
           </table>
