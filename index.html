@@ -42,12 +42,14 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body>
   <div id="root"></div>
-  <!-- Browser zahtijeva type="module" i punu putanju za TSX -->
-  <script type="module" src="index.tsx"></script>
-<script type="module" src="/index.tsx"></script>
+  
+  <!-- esm.sh/run omogućava browseru da razumije .tsx i JSX bez build koraka -->
+  <script type="module" src="https://esm.sh/run"></script>
+  
+  <!-- Skripta je sada type="text/tsx" kako bi je transpiler prepoznao -->
+  <script type="text/tsx" src="index.tsx"></script>
 </body>
 </html>
