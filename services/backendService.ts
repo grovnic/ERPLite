@@ -1,12 +1,12 @@
-// Fixed import by removing the .ts extension as per standard TypeScript practices
-import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, UserRole, TenantStatus } from '../types';
 
-// Config
+// @google/genai used in other parts of the system, backendService handles data persistence
+import { Tenant, User, ERPDocument, Client, InventoryItem, AuditEntry, AuditAction, TenantStatus } from '../types';
+
 const SB_URL = 'https://zbzuvrwvpmnqrlunpujf.supabase.co';
-// Eksplicitni tip : string sprečava TS da tipizuje ovo kao literalnu vrednost
-const SB_KEY: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8A'; 
+const SB_KEY: string = 'VAŠ_ANON_PUBLIC_KEY_OVDJE'; 
 
-const isSupabaseConfigured = SB_KEY !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienV2cnd2cG1ucXJsdW5wdWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjgwNjcsImV4cCI6MjA4NDUwNDA2N30.CuxkcablhF0u2b6ho5kwuCAMe7HARYcjoL5TlKwEH8AE' && SB_KEY.length > 20;
+// Provjera da li je ključ ostao placeholder
+const isSupabaseConfigured = SB_KEY !== 'VAŠ_ANON_PUBLIC_KEY_OVDJE' && SB_KEY.trim().length > 30;
 
 const headers = {
   'apikey': SB_KEY,
@@ -16,7 +16,7 @@ const headers = {
 };
 
 const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
-  if (!isSupabaseConfigured) throw new Error("Supabase is not configured. Using LocalStorage fallback.");
+  if (!isSupabaseConfigured) throw new Error("Supabase is not configured.");
   
   const response = await fetch(`${SB_URL}/rest/v1/${endpoint}`, {
     ...options,
@@ -24,17 +24,23 @@ const sbFetch = async (endpoint: string, options: RequestInit = {}) => {
   });
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({ message: 'Greška u komunikaciji sa bazom.' }));
-    throw new Error(err.message || "Baza podataka je vratila grešku.");
+    const err = await response.json().catch(() => ({ message: 'Baza podataka je vratila grešku.' }));
+    throw new Error(err.message || "Baza podataka nije dostupna.");
   }
   return response.json();
 };
 
-const getLocal = (key: string) => JSON.parse(localStorage.getItem(`erp_${key}`) || '[]');
+const getLocal = (key: string) => {
+  try {
+    return JSON.parse(localStorage.getItem(`erp_${key}`) || '[]');
+  } catch (e) {
+    return [];
+  }
+};
+
 const setLocal = (key: string, data: any) => localStorage.setItem(`erp_${key}`, JSON.stringify(data));
 
 export const backendService = {
-  // Ensured _log creates entries consistent with the AuditEntry interface
   async _log(user: User, action: AuditAction, resource: string, details: string) {
     const entry: AuditEntry = {
       id: crypto.randomUUID(),
@@ -49,17 +55,19 @@ export const backendService = {
     
     if (isSupabaseConfigured) {
       try {
-        const dbEntry = {
-          id: entry.id,
-          timestamp: entry.timestamp,
-          user_id: entry.userId,
-          username: entry.username,
-          tenant_id: entry.tenantId,
-          action: entry.action,
-          resource: entry.resource,
-          details: entry.details
-        };
-        await sbFetch('audit_log', { method: 'POST', body: JSON.stringify(dbEntry) });
+        await sbFetch('audit_log', { 
+          method: 'POST', 
+          body: JSON.stringify({
+            id: entry.id,
+            timestamp: entry.timestamp,
+            user_id: entry.userId,
+            username: entry.username,
+            tenant_id: entry.tenantId,
+            action: entry.action,
+            resource: entry.resource,
+            details: entry.details
+          }) 
+        });
       } catch (e) { console.error("Cloud logging failed", e); }
     } else {
       const logs = getLocal('audit_log');
@@ -70,7 +78,7 @@ export const backendService = {
   async login(email: string, password?: string): Promise<{ user: User | null; error?: string }> {
     try {
       if (isSupabaseConfigured) {
-        const users = await sbFetch(`users?email=eq.${email.toLowerCase()}&select=*`);
+        const users = await sbFetch(`users?email=eq.${email.toLowerCase().trim()}&select=*`);
         const user = users[0];
         if (!user || (password && user.password !== password)) return { user: null, error: 'Pogrešan email ili lozinka.' };
         
@@ -81,17 +89,12 @@ export const backendService = {
         await this._log(formattedUser, 'LOGIN', 'System', `Uspješna prijava.`);
         return { user: formattedUser };
       } else {
-        const users = getLocal('users');
-        const user = users.find((u: any) => u.email === email.toLowerCase());
-        
-        if (users.length === 0 && email === 'admin@demo.ba') {
-            const demoUser: User = { id: 'u_demo', email: 'admin@demo.ba', username: 'Demo Admin', role: 'SUPER_ADMIN', tenantId: 't_demo' };
-            setLocal('users', [demoUser]);
-            return { user: demoUser };
+        // Fallback na demo nalog
+        if (email === 'admin@demo.ba') {
+          const demoUser: User = { id: 'u_demo', email: 'admin@demo.ba', username: 'Demo Admin', role: 'SUPER_ADMIN', tenantId: 't_demo' };
+          return { user: demoUser };
         }
-
-        if (!user) return { user: null, error: 'Demo nalog nije pronađen. Koristite admin@demo.ba' };
-        return { user };
+        return { user: null, error: 'Koristite admin@demo.ba za demo pristup.' };
       }
     } catch (e: any) {
       return { user: null, error: e.message || "Konekcija sa bazom nije uspjela." };
@@ -104,7 +107,7 @@ export const backendService = {
 
     const newTenant = {
       id: tenantId,
-      status: isSupabaseConfigured ? 'PENDING' : 'APPROVED',
+      status: 'PENDING',
       created_at: new Date().toISOString(),
       company: companyData,
       security_policy: { sessionTimeoutMinutes: 60 }
@@ -177,11 +180,7 @@ export const backendService = {
       const payload = data.map(item => {
         const { id, tenantId, ...rest } = item as any;
         return {
-          id, tenant_id: tenantId, data: rest,
-          ...(rest.type ? { type: rest.type } : {}),
-          ...(rest.number ? { number: rest.number } : {}),
-          ...(rest.code ? { code: rest.code } : {}),
-          ...(rest.name ? { name: rest.name } : {})
+          id, tenant_id: tenantId, data: rest
         };
       });
       await sbFetch(resource, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) });
@@ -202,8 +201,7 @@ export const backendService = {
       }));
     } else {
       const all = getLocal('audit_log');
-      // Added support for both camelCase and snake_case in the local storage filter to handle legacy or mixed data
-      return tenantId === 'ALL' ? all : all.filter((l: any) => (l.tenantId === tenantId || l.tenant_id === tenantId));
+      return tenantId === 'ALL' ? all : all.filter((l: any) => l.tenantId === tenantId);
     }
   },
 
@@ -218,16 +216,15 @@ export const backendService = {
     return backup;
   },
 
-  async importFullBackup(user: User, backupData: any): Promise<void> {
+  // Fix: Added missing importFullBackup method as requested by Settings.tsx
+  async importFullBackup(user: User, data: any): Promise<void> {
     const stores = ['tenants', 'users', 'documents', 'clients', 'inventory', 'audit_log'];
+    // Overwrite local storage stores with data from backup
     for (const store of stores) {
-      if (backupData[store] && Array.isArray(backupData[store])) {
-        if (isSupabaseConfigured) {
-          await sbFetch(store, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(backupData[store]) });
-        } else {
-          setLocal(store, backupData[store]);
-        }
+      if (data[store]) {
+        localStorage.setItem(`erp_${store}`, JSON.stringify(data[store]));
       }
     }
+    await this._log(user, 'UPDATE', 'System', 'Uvoz (Import) cijele baze podataka iz backupa.');
   }
 };
